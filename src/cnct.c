@@ -8,11 +8,14 @@
 #include <sys/socket.h>
 #include "cnct.h"
 #include "rtcp.h"
+#include "http.h"
+#include "routes.h"
 
 Server* new_server(void) {
     Server* s = malloc(sizeof(Server));
+
     // Initialize Routemap
-    s->rmp = NULL;
+    s->rmp = g_hash_table_new(g_str_hash, g_str_equal);
 
     if(NUM_THREADS > 0) {
         pthread_mutex_init(&s->_req_queue_mutex, NULL);
@@ -54,7 +57,7 @@ int cnct(Server* s, short int port) {
 
 void* handle_requests(void* v) {
     Server* s = (Server*) v;
-    char* request_header = calloc(sizeof(char), HEADER_SIZE);
+    char* request_header = calloc(sizeof(char), REQUEST_SIZE);
     
     while(true) {
         pthread_mutex_lock(&s->_req_queue_mutex);
@@ -65,9 +68,24 @@ void* handle_requests(void* v) {
 
         /* Handle connection code */
         int* cfd_pointer = (int*)g_queue_pop_head(s->_req_queue);
+
         printf("Connection Accepted on thread %d!\n", syscall(__NR_gettid));
 
-        recv(*cfd_pointer, request_header, )
+        /* Get request header */
+        recv(*cfd_pointer, request_header, REQUEST_SIZE, 0);
+
+        RawHttpRequest* http_request = parse_request(request_header);
+
+        RawHttpResponse* response = route_connection(http_request, s->rmp); 
+
+        send(*cfd_pointer, response->response, response->response_len, 0);
+        puts(response->response);
+
+        free(http_request->path);
+        free(http_request);
+
+        free(response->response);
+        free(response);
 
 
         close(*cfd_pointer);

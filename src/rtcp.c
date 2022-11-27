@@ -27,12 +27,13 @@ raw_sock create_socket(short int port) {
 }
 
 int listen_at_addr(raw_sock socket, GQueue* queue, pthread_cond_t* socketcondvar, pthread_mutex_t* socketmutex) {
-    int e = listen(socket.sfd, 200);
+    int e = listen(socket.sfd, SOMAXCONN);
 
     if(e == 0) {
         while(1) {
             int* client_fd = malloc(sizeof(int));
             *client_fd = accept(socket.sfd, NULL, NULL);
+            printf("Accepting client connection\n");
 
             pthread_mutex_lock(socketmutex);
             g_queue_push_tail(queue, client_fd);
