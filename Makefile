@@ -15,8 +15,8 @@ ${OBJ}/%.o: ${SRC}/%.c
 	${CC} ${CFLAGS} ${LIBS} -c $< -o $@
 
 ctests: ${wildcard tests/*.c}
-	${CC} -O2 -Wall -g ${LIBS} -I./src -lcnct -o test_socket tests/raw_socket_test.c
-	${CC} -O2 -Wall -g ${LIBS} -I./src -lcnct -o test_endpoint tests/basic_endpoint.c
+	${CC} -O2 -Wall -g ${LIBS} -I./includes -lcnct -o test_socket tests/raw_socket_test.c
+	${CC} -O2 -Wall -g ${LIBS} -I./includes -lcnct -o test_endpoint tests/basic_endpoint.c
 
 .PHONY: clean install
 clean:
