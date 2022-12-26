@@ -37,7 +37,6 @@ int listen_at_addr(raw_sock socket, GQueue* queue, pthread_cond_t* socketcondvar
         while(1) {
             int* client_fd = malloc(sizeof(int));
             *client_fd = accept(socket.sfd, NULL, NULL);
-            printf("Accepting client connection\n");
 
             pthread_mutex_lock(socketmutex);
             g_queue_push_tail(queue, client_fd);

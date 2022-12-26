@@ -10,6 +10,7 @@
 #include "rtcp.h"
 #include "http.h"
 #include "routes.h"
+#include "servtypes.h"
 
 int gsfd;
 
@@ -58,6 +59,20 @@ int cnct(Server* s, short int port) {
     return listen_at_addr(socket, s->_req_queue, &s->_req_queue_cond_var, &s->_req_queue_mutex);
 }
 
+
+static void print_request(RawHttpRequest* r) {
+    switch(r->r) {
+    case GET:
+        printf(": GET ");
+        break;
+    }
+
+    // Resource
+    printf("%s HTTP/1.1\n\n", r->path);
+    
+}
+
+char rdate[120];
 void* handle_requests(void* v) {
     Server* s = (Server*) v;
 
@@ -75,16 +90,21 @@ void* handle_requests(void* v) {
 
         pthread_mutex_unlock(&s->_req_queue_mutex);
 
-        printf("Connection Accepted on thread %d!\n\n", syscall(__NR_gettid));
+        printf("Connection Accepted on thread %d!\n", syscall(__NR_gettid));
 
         recv(*cfd_pointer, request_header, REQUEST_SIZE, 0);
 
+        time_t now = time(0);
+        struct tm tm = *gmtime(&now);
+        strftime(rdate, sizeof rdate, "%a, %d %b %Y %H:%M:%S %Z", &tm);
+        printf("[%s]", rdate);
+        
         /* Get request header */
         RawHttpRequest* http_request = parse_request(request_header);
+        print_request(http_request);
+
 
         RawHttpResponse* response = route_connection(http_request, s->rmp); 
-        printf("%lu\n", strlen(response->response));
-
         
         send(*cfd_pointer, response->response, response->response_len, 0);
         

@@ -17,7 +17,7 @@ void sigterm_handler(int signum) {
 }
 
 RawHttpResponse* home(RawHttpRequest* r) {
-    return render("tests/index.html");
+    return render("tests/templates/index.html");
 }
 
 int main(void) {

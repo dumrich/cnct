@@ -52,8 +52,6 @@ RawHttpResponse* render(char* filename) {
     } 
 
     int length = file_size(f);
-
-    // FUCK THIS LINE THAT CAUSED HOURS OF DEBUGGING (calloc vs malloc)
     response->response = calloc(1, RESPONSE_SIZE);
 
     response->response_len = create_response(response->response, response->status_code, f);
