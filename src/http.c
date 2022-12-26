@@ -7,8 +7,13 @@
 #include <fcntl.h>
 #include <time.h>
 
-RawHttpRequest* parse_request(const char* buf) {
+RawHttpRequest* parse_request(char* buf) {
     RawHttpRequest* r = malloc(sizeof(RawHttpRequest));
+
+
+    /* TODO: Make larger */
+    r->path = malloc(100);
+    sscanf(buf, "%*s %s HTTP/", r->path);
 
     char method[3];
     memcpy(method, buf, 3);
@@ -20,16 +25,17 @@ RawHttpRequest* parse_request(const char* buf) {
         r->r = PUT;
     }
 
-    int lower_bound;
-    int upper_bound;
-    for(lower_bound = 3; buf[lower_bound] != ' '; lower_bound++);
-    for(upper_bound = lower_bound + 2; buf[upper_bound] != ' '; upper_bound++);
-
-    r->path = malloc(upper_bound - lower_bound + 2);
-    memcpy(r->path, buf + lower_bound + 1, upper_bound - lower_bound - 1);
-
     return r;
     
+}
+
+static size_t file_size(FILE* f) {
+    fseek(f, 0, SEEK_END);
+    int size = ftell(f);
+
+    fseek(f, 0, SEEK_SET);
+
+    return size;
 }
 
 RawHttpResponse* render(char* filename) {
@@ -37,40 +43,30 @@ RawHttpResponse* render(char* filename) {
 
     response->status_code = 200;
 
-    int fd = open(filename, O_RDONLY);
-    if(fd < 0) {
-        printf("Requested file not found\n");
+    FILE* f = fopen(filename, "r");
+
+    if(f == NULL) {
+        fprintf(stderr, "Requested file not found\n");
         response->status_code = 404;
+        return NULL;
     } 
 
-    int length = file_size(fd);
-    response->response = malloc(length + RESPONSE_HEADER_LEN + 1);
+    int length = file_size(f);
 
-    int offset = create_header(response->response, response->status_code);  
+    // FUCK THIS LINE THAT CAUSED HOURS OF DEBUGGING (calloc vs malloc)
+    response->response = calloc(1, RESPONSE_SIZE);
 
-    printf("%d\n", offset);
-    printf("%d\n", length);
+    response->response_len = create_response(response->response, response->status_code, f);
 
-    read(fd, response->response + offset, length);
-    
-    close(fd);
-
-    response->response_len = offset + length;
+    fclose(f);
 
     return response;
 }
 
-size_t file_size(int fd) {
-    size_t size = lseek(fd, 0, SEEK_END);
 
-    lseek(fd, 0, SEEK_SET);
-
-    return size;
-}
-
+char date[1000];
 // TODO: Add status code and HTTP version
-int create_header(char* buf, int status) {
-    char date[1000];
+int create_response(char* buf, int status, FILE* f) {
     time_t now = time(0);
     struct tm tm = *gmtime(&now);
     strftime(date, sizeof date, "%a, %d %b %Y %H:%M:%S %Z", &tm);
@@ -85,5 +81,8 @@ int create_header(char* buf, int status) {
     strcat(buf, "Connection: Closed\nDate: ");
     strcat(buf, date);
     strcat(buf, "\n\n");
-    return strlen(buf);
+    unsigned int offset = strlen(buf);
+
+    size_t bytes_read = fread(buf + offset, 1, RESPONSE_SIZE - offset, f);
+    return offset + bytes_read;
 }

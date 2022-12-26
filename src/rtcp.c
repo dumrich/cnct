@@ -10,6 +10,10 @@
 
 raw_sock create_socket(short int port) {
     int sfd = socket(AF_INET, SOCK_STREAM, 0);
+    
+    if (setsockopt(sfd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int)) < 0)
+        fprintf(stderr, "setsockopt(SO_REUSEADDR) failed");
+    
     if(sfd == -1) {
         return (raw_sock){.port = -1, .sfd = -1};
     }

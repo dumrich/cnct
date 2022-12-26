@@ -21,6 +21,7 @@ ctests: ${wildcard tests/*.c}
 .PHONY: clean install
 clean:
 	rm ${OBJ}/*.o ${BIN}
+	rm ./test_endpoint ./test_socket
 
 install:
 	cp ${BIN} /usr/lib/

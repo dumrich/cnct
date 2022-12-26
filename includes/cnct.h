@@ -3,6 +3,8 @@
 
 #include "servtypes.h"
 
+extern int gsfd;
+
 /* Default size for request buffer */
 /* TODO: Make growable request buffer */
 #define REQUEST_SIZE 16000

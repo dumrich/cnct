@@ -11,6 +11,8 @@
 #include "http.h"
 #include "routes.h"
 
+int gsfd;
+
 Server* new_server(void) {
     Server* s = malloc(sizeof(Server));
 
@@ -38,6 +40,7 @@ int cnct(Server* s, short int port) {
     fflush(stdout);
     /* Start TCP Server */
     raw_sock socket = create_socket(port);
+    gsfd = socket.sfd;
 
     if(socket.sfd < 0) {
         perror("Could not start socket");
@@ -57,6 +60,7 @@ int cnct(Server* s, short int port) {
 
 void* handle_requests(void* v) {
     Server* s = (Server*) v;
+
     char* request_header = calloc(sizeof(char), REQUEST_SIZE);
     
     while(true) {
@@ -69,30 +73,31 @@ void* handle_requests(void* v) {
         /* Handle connection code */
         int* cfd_pointer = (int*)g_queue_pop_head(s->_req_queue);
 
-        printf("Connection Accepted on thread %d!\n", syscall(__NR_gettid));
+        pthread_mutex_unlock(&s->_req_queue_mutex);
 
-        /* Get request header */
+        printf("Connection Accepted on thread %d!\n\n", syscall(__NR_gettid));
+
         recv(*cfd_pointer, request_header, REQUEST_SIZE, 0);
 
+        /* Get request header */
         RawHttpRequest* http_request = parse_request(request_header);
 
         RawHttpResponse* response = route_connection(http_request, s->rmp); 
+        printf("%lu\n", strlen(response->response));
 
+        
         send(*cfd_pointer, response->response, response->response_len, 0);
-        puts(response->response);
-
-        free(http_request->path);
-        free(http_request);
-
+        
         free(response->response);
         free(response);
 
+        free(http_request->path);
+        free(http_request);
 
         close(*cfd_pointer);
         free(cfd_pointer);
         /* End Handle Connection */
         
 
-        pthread_mutex_unlock(&s->_req_queue_mutex);
-    }
+    };
 }

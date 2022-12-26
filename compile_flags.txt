@@ -1,4 +1,4 @@
--I./src
+-I./includes
 -I/usr/include/glib-2.0
 -I/usr/lib/glib-2.0/include
 -I/usr/include/sysprof-4
