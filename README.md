@@ -2,8 +2,8 @@
 A flask like web framework written in C
 
 ## Features
-- [ ] Create Web Server
-- [ ] Handle Routes
+- [X] Create Web Server
+- [X] Handle Routes
   - [ ] Handle Regex
 - [ ] Send JSON Responses
 - [ ] HTMX support

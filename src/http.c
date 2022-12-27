@@ -46,7 +46,7 @@ RawHttpResponse* render(char* filename) {
     FILE* f = fopen(filename, "r");
 
     if(f == NULL) {
-        fprintf(stderr, "Requested file not found\n");
+        fprintf(stderr, "File not found, exiting...\n");
         response->status_code = 404;
         return NULL;
     } 
@@ -54,25 +54,48 @@ RawHttpResponse* render(char* filename) {
     int length = file_size(f);
     response->response = calloc(1, RESPONSE_SIZE);
 
-    response->response_len = create_response(response->response, response->status_code, f);
+    response->response_len = create_response(response->response, "200 Ok\n", f);
 
     fclose(f);
 
     return response;
 }
 
+RawHttpResponse* render_404(char* filename) {
+    RawHttpResponse* response = malloc(sizeof(RawHttpResponse));
+
+    response->status_code = 404;
+
+    FILE* f = fopen(filename, "r");
+
+    if(f == NULL) {
+        fprintf(stderr, "404 File not found, exiting...\n");
+        response->status_code = 404;
+        return NULL;
+    } 
+
+    int length = file_size(f);
+    response->response = calloc(1, RESPONSE_SIZE);
+
+    response->response_len = create_response(response->response, "404 Not Found\n", f);
+
+    fclose(f);
+
+    return response;
+}
 
 char date[1000];
-// TODO: Add status code and HTTP version
-int create_response(char* buf, int status, FILE* f) {
+
+// TODO: Add status code
+int create_response(char* buf, const char* status, FILE* f) {
     time_t now = time(0);
     struct tm tm = *gmtime(&now);
     strftime(date, sizeof date, "%a, %d %b %Y %H:%M:%S %Z", &tm);
 
     // HTTP Version
-    strcat(buf, "HTTP/1.1");
+    strcat(buf, "HTTP/1.1 ");
     // HTTP Status Code
-    strcat(buf, " 200 OK\n");
+    strcat(buf, status);
     // HTTP Return Type
     strcat(buf, "Content-Type: text/html\n");
     // HTTP Date

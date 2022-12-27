@@ -104,7 +104,7 @@ void* handle_requests(void* v) {
         print_request(http_request);
 
 
-        RawHttpResponse* response = route_connection(http_request, s->rmp); 
+        RawHttpResponse* response = route_connection(http_request, s->rmp, &s->opts); 
         
         send(*cfd_pointer, response->response, response->response_len, 0);
         

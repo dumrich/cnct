@@ -11,9 +11,11 @@ RawHttpRequest* parse_request(char*);
 
 // Default options
 RawHttpResponse* render(char* filename);
+RawHttpResponse* render_404(char* filename);
+
 RawHttpResponse* http_response(char* text);
 
-int create_response(char* buf, int status, FILE*);
+int create_response(char* buf, const char* status, FILE*);
 
 
 #endif

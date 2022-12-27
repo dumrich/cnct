@@ -36,7 +36,14 @@ typedef struct {
 
 typedef GHashTable RouteMap;
 
+struct Settings {
+    char* not_found_path;
+    char* static_dir;
+};
+
 typedef struct {
+    struct Settings opts;
+    
     RouteMap* rmp;
 
     /* Mutex for only the queue. Other data is read only */

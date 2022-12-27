@@ -6,7 +6,7 @@
 
 typedef GHashTable RouteMap;
 
-RawHttpResponse* route_connection(RawHttpRequest*, RouteMap*);
+RawHttpResponse* route_connection(RawHttpRequest*, RouteMap*, struct Settings*);
 
 void route(Server*, char* path, RawHttpResponse* (*view)(RawHttpRequest*));
 

@@ -6,22 +6,15 @@
 #include <stdio.h>
 #include <ctype.h>
 
-static void strip(char* s) {
-    s[5] = '\0';
-}
-
-RawHttpResponse* route_connection(RawHttpRequest* request, RouteMap* r) {
+RawHttpResponse* route_connection(RawHttpRequest* request, RouteMap* r, struct Settings* opts) {
     // Add Regex handler
     RawHttpResponse* (*root)(void*) = g_hash_table_lookup(r, request->path);
 
 
     // 404 Error
     if(root == NULL) {
-        printf("File not found\n");
-        RawHttpResponse* responser = malloc(sizeof(RawHttpResponse));
-        responser->response = malloc(strlen(HTTP_404) + 1);
-        strcpy(responser->response, HTTP_404);
-        return responser;
+        printf("File: %s\n", opts->not_found_path);
+        return render_404(opts->not_found_path);
     }
     
     // Header Already Added

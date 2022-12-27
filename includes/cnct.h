@@ -9,6 +9,8 @@ extern int gsfd;
 /* TODO: Make growable request buffer */
 #define REQUEST_SIZE 16000
 
+/* Default Settings, recompile to change */
+
 Server* new_server(void);
 int cnct(Server* s, short int port);
 
